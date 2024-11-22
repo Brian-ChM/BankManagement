@@ -5,6 +5,7 @@ public class Loan
     public int Id { get; set; }
     public DateTime AprovedDate { get; set; }
     public decimal Amount { get; set; }
+    public int Months { get; set; }
     public decimal InterestRate { get; set; }
     public string LoanType { get; set; } = string.Empty;
 

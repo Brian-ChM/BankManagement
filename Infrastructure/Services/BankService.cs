@@ -1,4 +1,5 @@
-﻿using Core.Interfaces.Repositories;
+﻿using Core.DTOs;
+using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Request;
 using FluentValidation;
@@ -17,7 +18,12 @@ internal class BankService : IBankService
         _loanApplicationValidation = loanApplicationValidation;
     }
 
-    public async Task<LoanApplicationRequest> LoanRequest(LoanApplicationRequest loanApplication)
+    public async Task<LoanApproveDto> ApproveLoan(int LoanRequestId)
+    {
+        return await _bankRepository.ApproveLoan(LoanRequestId);
+    }
+
+    public async Task<LoanRequestDto> LoanRequest(LoanApplicationRequest loanApplication)
     {
         var results = await _loanApplicationValidation.ValidateAsync(loanApplication);
 

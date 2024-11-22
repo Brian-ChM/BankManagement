@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using Core.DTOs;
+using Core.Entities;
 using Core.Interfaces.Repositories;
 using Core.Request;
 using Infrastructure.Context;
@@ -16,24 +17,37 @@ public class BankRepository : IBankRepository
         _context = context;
     }
 
-    public Task<LoanApplicationRequest> LoanRequest(LoanApplicationRequest loanApplication)
-    {
-        throw new NotImplementedException();
-    }
 
-    public async Task<LoanApplicationRequest> AddLoanApplication(LoanApplicationRequest loanApplication)
+    public async Task<LoanRequestDto> AddLoanApplication(LoanApplicationRequest loanApplication)
     {
 
-        var Customer = await VerifyExists(loanApplication.CustomerId);
+        var Customer = await VerifyCustomer(loanApplication.CustomerId);
         var TermInterest = await GetMonthsByMonths(loanApplication.MonthRequest);
 
         var AddLoanRequest = loanApplication.Adapt<LoanRequest>();
-        AddLoanRequest.TermInterestRateId = TermInterest.Id; 
+        AddLoanRequest.TermInterestRateId = TermInterest.Id;
 
         _context.Add(AddLoanRequest);
         await _context.SaveChangesAsync();
 
-        return loanApplication;
+        return new LoanRequestDto
+        {
+            Message = $"Solicitud lista, estado {AddLoanRequest.Status}"
+        };
+    }
+
+    public async Task<LoanApproveDto> ApproveLoan(int LoanRequestId)
+    {
+        var LoanRequest = await VerifyLoanRequest(LoanRequestId);
+
+        var Approve = LoanRequest.Adapt<Loan>();
+
+        LoanRequest.Status = "Approve";
+
+        _context.Loans.Add(Approve);
+        await _context.SaveChangesAsync();
+
+        return Approve.Adapt<LoanApproveDto>();
     }
 
     public async Task<TermInterestRate> GetMonthsByMonths(int Months)
@@ -42,11 +56,18 @@ public class BankRepository : IBankRepository
             throw new Exception("Seleccione un mes valido.");
     }
 
-    public async Task<Customer> VerifyExists (int Id)
+    public async Task<Customer> VerifyCustomer(int Id)
     {
         return await _context.Customers.FindAsync(Id) ??
             throw new Exception($"No se encontro un cliente con el Id {Id}");
     }
 
+    public async Task<LoanRequest> VerifyLoanRequest(int Id)
+    {
+        return await _context.LoanRequests
+            .Include(x => x.Customer)
+            .Include(x => x.TermInterestRate).FirstOrDefaultAsync(x => x.Id.Equals(Id)) ??
+            throw new Exception($"No se encontro la solicitud de prestamo con el Id {Id}");
+    }
 
 }

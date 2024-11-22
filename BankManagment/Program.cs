@@ -21,7 +21,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ExeptionHandlerMiddleware>();
+//app.UseMiddleware<ExeptionHandlerMiddleware>();
 
 app.UseAuthorization();
 
