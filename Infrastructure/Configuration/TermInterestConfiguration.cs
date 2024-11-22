@@ -19,8 +19,8 @@ public class TermInterestConfiguration : IEntityTypeConfiguration<TermInterestRa
             .IsRequired();
 
         entity
-            .HasOne(x => x.Loan)
-            .WithOne(x => x.TermInterest)
-            .HasForeignKey<Loan>(x => x.TermInterestId);
+            .HasMany(x => x.LoanRequests)
+            .WithOne(x => x.TermInterestRate)
+            .HasForeignKey(x => x.TermInterestRateId);
     }
 }

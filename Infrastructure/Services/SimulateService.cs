@@ -8,14 +8,14 @@ namespace Infrastructure.Services;
 
 public class SimulateService : ISimulateService
 {
-    private readonly IValidator<LoanRequest> _loanValidator;
+    private readonly IValidator<LoanRequestDto> _loanValidator;
 
-    public SimulateService(IValidator<LoanRequest> loanValidator)
+    public SimulateService(IValidator<LoanRequestDto> loanValidator)
     {
         _loanValidator = loanValidator;
     }
 
-    public async Task<LoanDto> SimulateLoan(LoanRequest request)
+    public async Task<LoanDto> SimulateLoan(LoanRequestDto request)
     {
 
         ValidationResult result = await _loanValidator.ValidateAsync(request);

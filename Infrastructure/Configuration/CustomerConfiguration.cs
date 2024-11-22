@@ -34,5 +34,10 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMany(x => x.Loans)
             .WithOne(x => x.Customer)
             .HasForeignKey(x => x.CustomerId);
+
+        entity
+            .HasMany(x => x.LoanRequests)
+            .WithOne(x => x.Customer)
+            .HasForeignKey(x => x.CustomerId);
     }
 }

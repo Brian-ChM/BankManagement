@@ -19,16 +19,16 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .IsRequired();
 
         entity
-            .Property(x => x.Balance)
+            .Property(x => x.Status)
             .IsRequired();
 
         entity
-            .Property(x => x.LoanId)
+            .Property(x => x.InstallmentId)
             .IsRequired();
 
         entity
-            .HasOne(x => x.Loan)
-            .WithMany(x => x.Payments)
-            .HasForeignKey(x => x.LoanId);
+            .HasOne(x => x.Installment)
+            .WithOne(x => x.Payment)
+            .HasForeignKey<Payment>(x => x.InstallmentId);
     }
 }

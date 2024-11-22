@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration;
 
-public class LoanConfiguration : IEntityTypeConfiguration<Loan>
+public class LoanRequestConfiguration : IEntityTypeConfiguration<LoanRequest>
 {
-    public void Configure(EntityTypeBuilder<Loan> entity)
+    public void Configure(EntityTypeBuilder<LoanRequest> entity)
     {
         entity.HasKey(x => x.Id);
 
         entity
-            .Property(x => x.AprovedDate)
+            .Property(x => x.LoanType)
             .IsRequired();
 
         entity
@@ -19,13 +19,11 @@ public class LoanConfiguration : IEntityTypeConfiguration<Loan>
             .IsRequired();
 
         entity
-            .Property(x => x.InterestRate)
+            .Property(x => x.Status)
             .IsRequired();
 
-
-
         entity
-            .Property(x => x.LoanType)
+            .Property(x => x.RejectionReason)
             .IsRequired();
 
         entity
@@ -33,23 +31,22 @@ public class LoanConfiguration : IEntityTypeConfiguration<Loan>
             .IsRequired();
 
         entity
-            .Property(x => x.LoanRequestId)
+            .Property(x => x.TermInterestRateId)
             .IsRequired();
 
         entity
             .HasOne(x => x.Customer)
-            .WithMany(x => x.Loans)
+            .WithMany(x => x.LoanRequests)
             .HasForeignKey(x => x.CustomerId);
 
         entity
-            .HasOne(x => x.LoanRequest)
-            .WithOne(x => x.Loan)
-            .HasForeignKey<Loan>(x => x.LoanRequestId)
-            .IsRequired();
+            .HasOne(x => x.TermInterestRate)
+            .WithMany(x => x.LoanRequests)
+            .HasForeignKey(x => x.TermInterestRateId);
 
         entity
-            .HasMany(x => x.Installments)
-            .WithOne(x => x.Loan)
-            .HasForeignKey(x => x.LoanId);
+            .HasOne(x => x.Loan)
+            .WithOne(x => x.LoanRequest)
+            .HasForeignKey<Loan>(x => x.LoanRequestId);
     }
 }

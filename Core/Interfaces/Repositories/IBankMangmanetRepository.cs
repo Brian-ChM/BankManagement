@@ -4,5 +4,5 @@ namespace Core.Interfaces.Repositories;
 
 public interface IBankMangmanetRepository
 {
-    Task<LoanRequest> LoanRequest(LoanRequest loanRequest);
+    Task<LoanRequestDto> LoanRequest(LoanRequestDto loanRequest);
 }

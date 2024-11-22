@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Infrastructure.Validation;
 
-public class SimulateLoanValidation : AbstractValidator<LoanRequest>
+public class SimulateLoanValidation : AbstractValidator<LoanRequestDto>
 {
     public SimulateLoanValidation()
     {

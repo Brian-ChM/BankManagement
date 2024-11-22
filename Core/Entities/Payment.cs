@@ -5,8 +5,8 @@ public class Payment
     public int Id { get; set; }
     public decimal Amount { get; set; }
     public DateTime PaymentDate { get; set; }
-    public decimal Balance { get; set; }
+    public string Status { get; set; } = null!;
 
-    public int LoanId { get; set; }
-    public Loan Loan { get; set; } = null!;
+    public int InstallmentId { get; set; }
+    public Installment Installment { get; set; } = null!;
 }

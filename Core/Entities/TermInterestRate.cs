@@ -6,5 +6,5 @@ public class TermInterestRate
     public ushort Months { get; set; }
     public decimal Interest {  get; set; }
 
-    public Loan Loan { get; set; } = null!;
+    public List<LoanRequest> LoanRequests { get; set; } = [];
 }

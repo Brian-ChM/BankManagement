@@ -14,7 +14,7 @@ public class BankController : BaseApiController
     }
 
     [HttpPost("simulate-loan")]
-    public async Task<IActionResult> SimulateLoan([FromBody] LoanRequest request)
+    public async Task<IActionResult> SimulateLoan([FromBody] LoanRequestDto request)
     {
         return Ok(await _simulateService.SimulateLoan(request));
     }
