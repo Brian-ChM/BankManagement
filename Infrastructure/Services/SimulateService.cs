@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Request;
 using FluentValidation;
@@ -8,14 +9,16 @@ namespace Infrastructure.Services;
 
 public class SimulateService : ISimulateService
 {
-    private readonly IValidator<LoanRequestDto> _loanValidator;
+    private readonly IValidator<LoanSimulateRequest> _loanValidator;
+    private readonly ISimulateRepository _simulate;
 
-    public SimulateService(IValidator<LoanRequestDto> loanValidator)
+    public SimulateService(IValidator<LoanSimulateRequest> loanValidator, ISimulateRepository simulate)
     {
         _loanValidator = loanValidator;
+        _simulate = simulate;
     }
 
-    public async Task<LoanDto> SimulateLoan(LoanRequestDto request)
+    public async Task<LoanDto> SimulateLoan(LoanSimulateRequest request)
     {
 
         ValidationResult result = await _loanValidator.ValidateAsync(request);
@@ -23,21 +26,24 @@ public class SimulateService : ISimulateService
         if (!result.IsValid)
             throw new ValidationException(result.Errors);
 
-        decimal Interest = 18;
+        var TermInterest = await _simulate.GetMonthsByMonths(request.Month);
+
+        decimal Interest = TermInterest.Interest;
 
         decimal MonthlyInterest = Interest / 100 / 12;
 
-        decimal MonthlyPayment = request.Amount * (MonthlyInterest * (decimal)Math.Pow((double)(1 + MonthlyInterest), request.Fees))
-                                 / ((decimal)Math.Pow((double)(1 + MonthlyInterest), request.Fees) - 1);
+        decimal MonthlyPayment = request.Amount * (MonthlyInterest * (decimal)Math.Pow((double)(1 + MonthlyInterest), request.Month))
+                                 / ((decimal)Math.Pow((double)(1 + MonthlyInterest), request.Month) - 1);
 
-        decimal TotalAmountPaid = MonthlyPayment * request.Fees;
+        decimal TotalAmountPaid = (MonthlyPayment * request.Month);
 
         decimal InterestAmount = TotalAmountPaid - request.Amount;
 
         return new LoanDto
         {
-            MonthlyPaid = $"{MonthlyPayment:f0}",
-            TotalPaid = $"{TotalAmountPaid:f0}"
+            MonthlyPaid = $"{MonthlyPayment.ToString("#,0")}",
+            InterestRate = Interest,
+            TotalPaid = $"{TotalAmountPaid.ToString("#,0")}"
         };
     }
 

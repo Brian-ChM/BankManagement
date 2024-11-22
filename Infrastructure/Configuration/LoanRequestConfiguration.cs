@@ -23,10 +23,6 @@ public class LoanRequestConfiguration : IEntityTypeConfiguration<LoanRequest>
             .IsRequired();
 
         entity
-            .Property(x => x.RejectionReason)
-            .IsRequired();
-
-        entity
             .Property(x => x.CustomerId)
             .IsRequired();
 

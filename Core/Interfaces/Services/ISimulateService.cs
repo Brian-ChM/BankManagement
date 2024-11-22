@@ -5,5 +5,5 @@ namespace Core.Interfaces.Services;
 
 public interface ISimulateService
 {
-    Task<LoanDto> SimulateLoan(LoanRequestDto request);
+    Task<LoanDto> SimulateLoan(LoanSimulateRequest request);
 }

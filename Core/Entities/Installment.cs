@@ -6,7 +6,7 @@ public class Installment
     public decimal TotalAmount { get; set; }
     public decimal PrincipalAmount { get; set; }
     public decimal InterestAmount { get; set; }
-    public DateTime DueDate { get; set; } // Fecha Limite
+    public DateTime DueDate { get; set; }
     public string Status { get; set; } = string.Empty;
 
     public int LoanId { get; set; }
