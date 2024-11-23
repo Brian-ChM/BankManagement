@@ -55,7 +55,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Installment", b =>
@@ -89,7 +89,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("LoanId");
 
-                    b.ToTable("Installments");
+                    b.ToTable("Installments", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Loan", b =>
@@ -129,7 +129,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("LoanRequestId")
                         .IsUnique();
 
-                    b.ToTable("Loans");
+                    b.ToTable("Loans", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.LoanRequest", b =>
@@ -163,7 +163,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("TermInterestRateId");
 
-                    b.ToTable("LoanRequests");
+                    b.ToTable("LoanRequests", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Payment", b =>
@@ -192,7 +192,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("InstallmentId")
                         .IsUnique();
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.TermInterestRate", b =>
@@ -211,7 +211,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TermInterestRates");
+                    b.ToTable("TermInterestRates", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Installment", b =>
