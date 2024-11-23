@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Context;
@@ -18,7 +19,12 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfiguration(new CustomerConfiguration());
+        modelBuilder.ApplyConfiguration(new InstallmentConfiguration());
+        modelBuilder.ApplyConfiguration(new LoanConfiguration());
+        modelBuilder.ApplyConfiguration(new LoanRequestConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new TermInterestConfiguration());
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
