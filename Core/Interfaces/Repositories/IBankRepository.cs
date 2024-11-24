@@ -12,5 +12,5 @@ public interface IBankRepository
     Task<TermInterestRate> GetMonthsByMonths(int months);
     Task<Customer> VerifyCustomer(int Id);
     Task<LoanRequest> VerifyLoanRequest(int Id);
-
+    Task<Loan> GetLoanById(int Id);
 }

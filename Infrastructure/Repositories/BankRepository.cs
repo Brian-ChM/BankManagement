@@ -69,4 +69,13 @@ public class BankRepository : IBankRepository
             .Include(x => x.TermInterestRate).FirstOrDefaultAsync(x => x.Id.Equals(Id)) ??
             throw new Exception($"No se encontro la solicitud de prestamo con el Id {Id}");
     }
+
+    public async Task<Loan> GetLoanById (int Id)
+    {
+        return await _context.Loans
+            .Include(x => x.Customer)
+            .Include(x => x.Installments)
+            .FirstOrDefaultAsync(x => x.Id == Id) ??
+            throw new Exception("El prestamo solicitado no existe.");
+    }
 }

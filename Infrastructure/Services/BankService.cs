@@ -13,16 +13,16 @@ public class BankService : IBankService
     private readonly IBankRepository _bankRepository;
     private readonly IAuthService _authService;
     private readonly IValidator<LoanApplicationRequest> _loanApplicationValidation;
-    private readonly IValidator<LoanRejectRequest> _loanRejectValidation ;
+    private readonly IValidator<LoanRejectRequest> _loanRejectValidation;
 
-    public BankService(IBankRepository bankRepository, 
-        IValidator<LoanApplicationRequest> loanApplicationValidation, 
-        IValidator<LoanRejectRequest> loanRejectValidation, 
+    public BankService(IBankRepository bankRepository,
+        IValidator<LoanApplicationRequest> loanApplicationValidation,
+        IValidator<LoanRejectRequest> loanRejectValidation,
         IAuthService authService)
     {
         _bankRepository = bankRepository;
         _loanApplicationValidation = loanApplicationValidation;
-        _loanRejectValidation = loanRejectValidation,
+        _loanRejectValidation = loanRejectValidation;
         _authService = authService;
     }
 
@@ -83,6 +83,47 @@ public class BankService : IBankService
         await _bankRepository.GetMonthsByMonths(loanApplication.MonthRequest);
 
         return await _bankRepository.AddLoanApplication(loanApplication);
+    }
+
+    public async Task<LoanDetailedDto> DetailedLoan(int Id)
+    {
+        if (Id <= 0)
+            throw new ArgumentOutOfRangeException(nameof(Id));
+
+        var Loan = await _bankRepository.GetLoanById(Id);
+
+        //var TotalPaid = Loan.Installments
+        //    .Where(x => x.LoanId == Id)
+        //    .Sum(x => x.TotalAmount);
+
+        //var DuesPaid = Loan.Installments.Count(x => x.Status == "Paid");
+        //var PendingInstallments = Loan.Installments.Count(x => x.Status == "Pending");
+
+        //var NextExpiration = Loan.Installments
+        //    .FirstOrDefault(x => x.Status == "Pending")?
+        //    .DueDate.ToShortDateString();
+
+        //var LoanCustomer = new LoanCustomerDetailedDto
+        //{
+        //    Id = Loan.Customer.Id,
+        //    Name = $"{Loan.Customer.FirstName} {Loan.Customer.LastName}"
+        //};
+        //return new LoanDetailedDto
+        //{
+        //    Customer = LoanCustomer,
+        //    ApproveDate = Loan.AprovedDate.ToShortDateString(),
+        //    AmountRequest = Loan.Amount,
+        //    TotalPaid = TotalPaid,
+        //    EarnedProfit = TotalPaid - Loan.Amount,
+        //    Months = Loan.Months,
+        //    LoanType = Loan.LoanType,
+        //    Interest = Loan.InterestRate,
+        //    DuesPaid = DuesPaid,
+        //    PendingInstallments = PendingInstallments,
+        //    NextExpirationDate = NextExpiration ?? "No hay cuotas pendientes."
+        //};
+
+        return Loan.Adapt<LoanDetailedDto>();
     }
 
     public List<Installment> GenerateInstallments(Loan loan)

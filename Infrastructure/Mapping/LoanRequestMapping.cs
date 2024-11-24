@@ -24,5 +24,29 @@ public class LoanRequestMapping : IRegister
         config.NewConfig<Loan, LoanApproveDto>()
             .Map(dest => dest.ApprovedDate, src => src.AprovedDate.ToShortDateString())
             .Map(dest => dest.Interest, src => src.InterestRate);
+
+
+        config.NewConfig<Loan, LoanDetailedDto>()
+            .Map(dest => dest.Customer,
+                 src => new LoanCustomerDetailedDto
+                 {
+                     Id = src.Customer.Id,
+                     Name = $"{src.Customer.FirstName} {src.Customer.LastName}"
+                 })
+            .Map(dest => dest.ApproveDate, src => src.AprovedDate.ToShortDateString())
+            .Map(dest => dest.AmountRequest, src => src.Amount)
+            .Map(dest => dest.TotalPaid, src => src.Installments.Sum(x => x.TotalAmount))
+            .Map(dest => dest.EarnedProfit, src => src.Installments.Sum(x => x.TotalAmount) - src.Amount)
+            .Map(dest => dest.Interest, src => src.InterestRate)
+            .Map(dest => dest.DuesPaid, src => src.Installments.Count(x => x.Status == "Paid"))
+            .Map(dest => dest.PendingInstallments, src => src.Installments.Count(x => x.Status == "Pending"))
+            .Map(dest => dest.NextExpirationDate, src => NextExpiration(src));
+    }
+    private static string NextExpiration(Loan src)
+    {
+        return src.Installments
+            .FirstOrDefault(x => x.Status == "Pending")?
+            .DueDate.ToShortDateString() ??
+            "No hay cuotas pendientes.";
     }
 }

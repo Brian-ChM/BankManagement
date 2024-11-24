@@ -34,6 +34,12 @@ public class BankController : BaseApiController
         return Ok(await _bankService.LoanRequest(loanApplication));
     }
 
+    [HttpGet("loan/{Id}")]
+    public async Task<IActionResult> LoanDetailed([FromRoute] int Id)
+    {
+        return Ok(await _bankService.DetailedLoan(Id));
+    }
+
     [Authorize(Roles = "admin")]
     [HttpGet("loan/request/{loanRequesId}/approve")]
     public async Task<IActionResult> ApproveLoan([FromRoute] int loanRequesId)
