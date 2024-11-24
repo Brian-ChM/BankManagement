@@ -7,9 +7,8 @@ namespace Core.Interfaces.Repositories;
 public interface IBankRepository
 {
     Task<LoanRequestDto> AddLoanApplication(LoanApplicationRequest loanApplication);
-    Task<CustomerDto> GetToken(int Id);
-    Task<Loan> ApproveLoan(int loanRequestId);
-    Task AddInstallments(List<Installment> installments);
+    Task<LoanApproveDto> ApproveLoan(Loan LoanApproved, List<Installment> installments);
+    Task<LoanRejectDto> RejectLoan(LoanRequest loanRequest);
     Task<TermInterestRate> GetMonthsByMonths(int months);
     Task<Customer> VerifyCustomer(int Id);
     Task<LoanRequest> VerifyLoanRequest(int Id);

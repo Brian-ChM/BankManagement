@@ -27,6 +27,10 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .IsRequired();
 
         entity
+            .Property(x => x.Role)
+            .IsRequired();
+
+        entity
             .Property(x => x.BirthDate)
             .IsRequired();
 

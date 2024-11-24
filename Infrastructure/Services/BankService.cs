@@ -11,25 +11,65 @@ namespace Infrastructure.Services;
 public class BankService : IBankService
 {
     private readonly IBankRepository _bankRepository;
+    private readonly IAuthService _authService;
     private readonly IValidator<LoanApplicationRequest> _loanApplicationValidation;
+    private readonly IValidator<LoanRejectRequest> _loanRejectValidation ;
 
-    public BankService(IBankRepository bankRepository, IValidator<LoanApplicationRequest> loanApplicationValidation)
+    public BankService(IBankRepository bankRepository, 
+        IValidator<LoanApplicationRequest> loanApplicationValidation, 
+        IValidator<LoanRejectRequest> loanRejectValidation, 
+        IAuthService authService)
     {
         _bankRepository = bankRepository;
         _loanApplicationValidation = loanApplicationValidation;
+        _loanRejectValidation = loanRejectValidation,
+        _authService = authService;
     }
 
-    public async Task<CustomerDto> GetToken(int Id)
+    public async Task<string> GetToken(int Id)
     {
-        return await _bankRepository.GetToken(Id);
+        if (Id <= 0)
+            throw new ArgumentOutOfRangeException(nameof(Id));
+
+        var Customer = await _bankRepository.VerifyCustomer(Id);
+        var CustomerDto = Customer.Adapt<CustomerDto>();
+
+        return _authService.CreateToken(CustomerDto);
     }
 
-    public async Task<LoanApproveDto> ApproveLoan(int LoanRequestId)
+    public async Task<LoanApproveDto> ApproveLoan(int loanRequestId)
     {
-        var LoanEntity = await _bankRepository.ApproveLoan(LoanRequestId);
-        var Installments = GenerateInstallments(LoanEntity);
-        await _bankRepository.AddInstallments(Installments);
-        return LoanEntity.Adapt<LoanApproveDto>();
+        if (loanRequestId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(loanRequestId));
+
+        var LoanRequest = await _bankRepository.VerifyLoanRequest(loanRequestId);
+
+        if (LoanRequest.Status == "Approve")
+            throw new Exception("La solicitud de prestamo ya ha sido Aprovada.");
+
+        LoanRequest.Status = "Approve";
+        var Approve = LoanRequest.Adapt<Loan>();
+        var Installments = GenerateInstallments(Approve);
+
+        return await _bankRepository.ApproveLoan(Approve, Installments);
+    }
+
+    public async Task<LoanRejectDto> RejectLoan(LoanRejectRequest loanReject)
+    {
+        var results = await _loanRejectValidation.ValidateAsync(loanReject);
+
+        if (!results.IsValid)
+            throw new ValidationException(results.Errors);
+
+        var LoanRequest = await _bankRepository.VerifyLoanRequest(loanReject.Id);
+
+        if (LoanRequest.Status == "Reject")
+            throw new Exception("La solicitud de prestamo ya ha sido rechazada.");
+
+        LoanRequest.Status = "Reject";
+        LoanRequest.RejectionReason = loanReject.Reason;
+
+        return await _bankRepository.RejectLoan(LoanRequest);
     }
 
     public async Task<LoanRequestDto> LoanRequest(LoanApplicationRequest loanApplication)
@@ -39,7 +79,7 @@ public class BankService : IBankService
         if (!results.IsValid)
             throw new ValidationException(results.Errors);
 
-
+        await _bankRepository.VerifyCustomer(loanApplication.CustomerId);
         await _bankRepository.GetMonthsByMonths(loanApplication.MonthRequest);
 
         return await _bankRepository.AddLoanApplication(loanApplication);
