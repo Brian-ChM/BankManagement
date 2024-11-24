@@ -17,7 +17,11 @@ public class BankRepository : IBankRepository
         _context = context;
     }
 
-
+    public async Task<CustomerDto> GetToken(int Id)
+    {
+        var Customer = await _context.Customers.FindAsync(Id);
+        return Customer.Adapt<CustomerDto>();
+    }
     public async Task<LoanRequestDto> AddLoanApplication(LoanApplicationRequest loanApplication)
     {
 
@@ -36,18 +40,22 @@ public class BankRepository : IBankRepository
         };
     }
 
-    public async Task<LoanApproveDto> ApproveLoan(int LoanRequestId)
+    public async Task<Loan> ApproveLoan(int LoanRequestId)
     {
         var LoanRequest = await VerifyLoanRequest(LoanRequestId);
-
         var Approve = LoanRequest.Adapt<Loan>();
-
         LoanRequest.Status = "Approve";
 
         _context.Loans.Add(Approve);
         await _context.SaveChangesAsync();
 
-        return Approve.Adapt<LoanApproveDto>();
+        return Approve;
+    }
+
+    public async Task AddInstallments(List<Installment> installments)
+    {
+        _context.Installments.AddRange(installments);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<TermInterestRate> GetMonthsByMonths(int Months)
@@ -69,5 +77,4 @@ public class BankRepository : IBankRepository
             .Include(x => x.TermInterestRate).FirstOrDefaultAsync(x => x.Id.Equals(Id)) ??
             throw new Exception($"No se encontro la solicitud de prestamo con el Id {Id}");
     }
-
 }

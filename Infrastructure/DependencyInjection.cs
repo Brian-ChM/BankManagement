@@ -1,6 +1,6 @@
-﻿using Core.Entities;
-using Core.Interfaces.Repositories;
+﻿using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Models;
 using Core.Request;
 using FluentValidation;
 using Infrastructure.Context;
@@ -9,10 +9,13 @@ using Infrastructure.Services;
 using Infrastructure.Validation;
 using Mapster;
 using MapsterMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
+using System.Text;
 
 namespace Infrastructure;
 
@@ -25,7 +28,7 @@ public static class DependencyInjection
         services.AddDatabase(configuration);
         services.AddValidation();
         services.AddMapping();
-        services.AddAuth();
+        services.AddAuth(configuration);
         return services;
     }
 
@@ -33,6 +36,7 @@ public static class DependencyInjection
     {
         services.AddScoped<ISimulateService, SimulateService>();
         services.AddScoped<IBankService, BankService>();
+        services.AddScoped<IAuthService, AuthService>();
         return services;
     }
 
@@ -70,8 +74,27 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddAuth(this IServiceCollection services)
+    public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
+        configuration.GetSection("JWT").Get<JwtConfig>();
+
+        services.AddAuthentication(opt =>
+        {
+            opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(opt =>
+        {
+            opt.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.Secret))
+            };
+        });
+
+        services.AddTransient<AuthService>();
+
         return services;
     }
 }
