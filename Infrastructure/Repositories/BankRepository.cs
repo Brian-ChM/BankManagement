@@ -5,6 +5,7 @@ using Core.Request;
 using Infrastructure.Context;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Infrastructure.Repositories;
 
@@ -17,7 +18,7 @@ public class BankRepository : IBankRepository
         _context = context;
     }
 
-    public async Task<LoanRequestDto> AddLoanApplication(LoanApplicationRequest loanApplication)
+    public async Task<LoanRequestDto> AddLoanRequest(LoanApplicationRequest loanApplication)
     {
         var TermInterest = await GetMonthsByMonths(loanApplication.MonthRequest);
 
@@ -50,6 +51,16 @@ public class BankRepository : IBankRepository
         return loanRequest.Adapt<LoanRejectDto>();
     }
 
+    public async Task<List<Installment>> GetInstallmentsOverdue()
+    {
+        return await _context.Installments
+            .Include(x => x.Loan)
+            .ThenInclude(x => x.Customer)
+            .Where(x => x.DueDate < DateTime.UtcNow)
+            .ToListAsync();
+    }
+
+
     public async Task<TermInterestRate> GetMonthsByMonths(int Months)
     {
         return await _context.TermInterestRates.FirstOrDefaultAsync(x => x.Months == Months) ??
@@ -62,23 +73,6 @@ public class BankRepository : IBankRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<Installment>> VerifyExistsInstallmentsByLoanId(int LoanId)
-    {
-        var Installments = await _context.Installments
-            .Where(x => x.Status == "pending" && x.LoanId == LoanId)
-            .OrderBy(x => x.DueDate)
-            .ToListAsync() ?? 
-            throw new Exception("No hay cuotas pendientes para este préstamo.");
-
-        return Installments;
-    }
-
-    public async Task<Customer> VerifyCustomer(int Id)
-    {
-        return await _context.Customers.FindAsync(Id) ??
-            throw new Exception($"No se encontro un cliente con el Id {Id}");
-    }
-
     public async Task<LoanRequest> VerifyLoanRequest(int Id)
     {
         return await _context.LoanRequests
@@ -87,13 +81,15 @@ public class BankRepository : IBankRepository
             throw new Exception($"No se encontro la solicitud de prestamo con el Id {Id}");
     }
 
-    public async Task<List<Installment>> GetInstallmentsOverdue()
+    public async Task<List<Installment>> VerifyExistsInstallmentsByLoanId(int LoanId)
     {
-        return await _context.Installments
-            .Include(x => x.Loan)
-            .ThenInclude(x => x.Customer)
-            .Where(x => x.DueDate < DateTime.UtcNow)
-            .ToListAsync();
+        var Installments = await _context.Installments
+            .Where(x => x.Status == "pending" && x.LoanId == LoanId)
+            .OrderBy(x => x.DueDate)
+            .ToListAsync() ??
+            throw new Exception("No hay cuotas pendientes para este préstamo.");
+
+        return Installments;
     }
 
     public async Task<List<Installment>> GetInstallmentsByLoanId(int Id, string? status)
@@ -107,6 +103,12 @@ public class BankRepository : IBankRepository
             query = query.Where(x => x.Status == status);
 
         return await query.ToListAsync();
+    }
+
+    public async Task<Customer> VerifyCustomer(int Id)
+    {
+        return await _context.Customers.FindAsync(Id) ??
+            throw new Exception($"No se encontro un cliente con el Id {Id}");
     }
 
     public async Task<Loan> GetLoanById(int Id)

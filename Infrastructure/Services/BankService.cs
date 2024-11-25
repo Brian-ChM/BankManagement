@@ -6,6 +6,7 @@ using Core.Request;
 using Mapster;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Infrastructure.Services;
 
@@ -30,14 +31,18 @@ public class BankService : IBankService
         _authService = authService;
     }
 
-    public async Task<string> GetToken(int Id)
+    public async Task<LoanRequestDto> LoanRequest(LoanApplicationRequest loanApplication)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+        var results = await _loanApplicationValidation.ValidateAsync(loanApplication);
 
-        var Customer = await _bankRepository.VerifyCustomer(Id);
-        var CustomerDto = Customer.Adapt<CustomerDto>();
+        if (!results.IsValid)
+            throw new ValidationException(results.Errors);
 
-        return _authService.CreateToken(CustomerDto);
+        loanApplication.LoanType = GetLoanType(loanApplication.LoanType);
+        await _bankRepository.VerifyCustomer(loanApplication.CustomerId);
+        await _bankRepository.GetMonthsByMonths(loanApplication.MonthRequest);
+
+        return await _bankRepository.AddLoanRequest(loanApplication);
     }
 
     public async Task<LoanApproveDto> ApproveLoan(int loanRequestId)
@@ -75,33 +80,12 @@ public class BankService : IBankService
         return await _bankRepository.RejectLoan(LoanRequest);
     }
 
-    public async Task<LoanRequestDto> LoanRequest(LoanApplicationRequest loanApplication)
-    {
-        var results = await _loanApplicationValidation.ValidateAsync(loanApplication);
-
-        if (!results.IsValid)
-            throw new ValidationException(results.Errors);
-
-        await _bankRepository.VerifyCustomer(loanApplication.CustomerId);
-        await _bankRepository.GetMonthsByMonths(loanApplication.MonthRequest);
-
-        return await _bankRepository.AddLoanApplication(loanApplication);
-    }
-
     public async Task<LoanDetailedDto> DetailedLoan(int Id)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
 
         var Loan = await _bankRepository.GetLoanById(Id);
         return Loan.Adapt<LoanDetailedDto>();
-    }
-
-    public async Task<List<InstallmentsDto>> GetInstallments(int Id, string? status)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
-
-        var Installments = await _bankRepository.GetInstallmentsByLoanId(Id, status);
-        return Installments.Adapt<List<InstallmentsDto>>();
     }
 
     public async Task<string> PaidInstallments(InstallmentPaymentRequest installmentPayment)
@@ -139,11 +123,20 @@ public class BankService : IBankService
         return $"Pago {InstallmentsPaidCount} cuotas.";
     }
 
+    public async Task<List<InstallmentsDto>> GetInstallments(int Id, string? status)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+
+        var Installments = await _bankRepository.GetInstallmentsByLoanId(Id, status);
+        return Installments.Adapt<List<InstallmentsDto>>();
+    }
+
     public async Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue()
     {
         var InstallmentsOverdue = await _bankRepository.GetInstallmentsOverdue();
         return InstallmentsOverdue.Adapt<List<InstallmentsOverdueDto>>();
     }
+
 
     public List<Installment> GenerateInstallments(Loan loan)
     {
@@ -179,5 +172,26 @@ public class BankService : IBankService
 
         return installments;
     }
+    public async Task<string> GetToken(int Id)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+
+        var Customer = await _bankRepository.VerifyCustomer(Id);
+        var CustomerDto = Customer.Adapt<CustomerDto>();
+
+        return _authService.CreateToken(CustomerDto);
+    }
+    public string GetLoanType(string value)
+    {
+        var validLoanTypes = new[] { "vivienda", "automotriz", "personal" };
+
+        foreach (var loanType in validLoanTypes)
+        {
+            if (String.Compare(value.ToLower(), loanType, CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace) == 0)
+                return loanType;
+        }
+        throw new Exception("Tipo de prestamo no valido");
+    }
+
 
 }

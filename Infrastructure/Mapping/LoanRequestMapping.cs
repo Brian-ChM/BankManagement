@@ -10,7 +10,8 @@ public class LoanRequestMapping : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<LoanApplicationRequest, LoanRequest>()
-            .Map(dest => dest.Amount, src => src.AmountRequest);
+            .Map(dest => dest.Amount, src => src.AmountRequest)
+            .Map(dest => dest.LoanType, src => src.LoanType);
 
         config.NewConfig<LoanRequest, Loan>()
             .Map(dest => dest.LoanRequestId, src => src.Id)

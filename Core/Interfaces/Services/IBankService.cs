@@ -10,9 +10,11 @@ public interface IBankService
     Task<LoanApproveDto> ApproveLoan(int loanRequestId);
     Task<LoanRejectDto> RejectLoan(LoanRejectRequest loanReject);
     Task<LoanDetailedDto> DetailedLoan(int Id);
-    Task<string> GetToken(int Id);
+    Task<string> PaidInstallments(InstallmentPaymentRequest installmentPayment);
     Task<List<InstallmentsDto>> GetInstallments(int Id, string? status);
     Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue();
-    Task<string> PaidInstallments(InstallmentPaymentRequest installmentPayment);
+
     List<Installment> GenerateInstallments(Loan loan);
+    string GetLoanType(string value);
+    Task<string> GetToken(int Id);
 }
