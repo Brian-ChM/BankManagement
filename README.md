@@ -45,7 +45,7 @@ El 'Id' recibido debe corresponder a un cliente. Con este identificador se gener
 
 **Recibe:**
 
-```json
+```js
 {
   "amount": int,  // Monto solicitado
   "month": int    // Cantidad de cuotas solicitadas 
@@ -57,7 +57,7 @@ Simula un préstamo basado en los datos proporcionados. El interés puede variar
 
 **Devuelve:**
 
-```json
+```js
 {
   "monthlyPaid": int,     // Monto mensual a pagar.
   "totalPaid": int,       // Monto total a pagar al finalizar el préstamo.
@@ -71,7 +71,7 @@ Simula un préstamo basado en los datos proporcionados. El interés puede variar
 
 **Recibe:**
 
-```json
+```js
 {
   "customerId": int,      // ID del cliente solicitante.
   "loanType": "string",   // Tipo de préstamo: "personal", "vivienda", "automotriz".
@@ -85,7 +85,7 @@ Genera una solicitud de préstamo para un cliente específico. El estado inicial
 
 **Devuelve:**
 
-```json
+```js
 {
   "message": "Solicitud lista, estado Pending"
 }
@@ -102,7 +102,7 @@ Obtiene todos los detalles de un préstamo aprobado, identificado por el 'Id'. L
 
 **Devuelve:**
 
-```json
+```js
 {
   "customer": {
     "id": int,            // ID del cliente
@@ -132,7 +132,7 @@ Obtiene una lista de todas las cuotas asociadas a un préstamo identificado por 
 
 **Devuelve:**
 
-```json
+```js
 [
   {
     "customer": {
@@ -153,7 +153,7 @@ Obtiene una lista de todas las cuotas asociadas a un préstamo identificado por 
 
 **Recibe:**
 
-```json
+```js
 {
   "id": int,      // ID del préstamo
   "amount": int   // Monto a pagar
@@ -165,7 +165,7 @@ Realiza el pago de una o varias cuotas de un préstamo, identificadas por su 'id
 
 **Devuelve:**
 
-```json
+```js
 {
   "message": "Pago de {cantidad: int} cuotas, quedan {cantidad: int} cuotas pendientes"
 }
@@ -180,7 +180,7 @@ Obtiene todas las cuotas que están pendientes de pago y cuya fecha de vencimien
 
 **Devuelve:**
 
-```json
+```js
 [
   {
     "customer": {
@@ -206,7 +206,7 @@ Este endpoint requiere un token que se puede obtener a través de `bank/{ id }/g
 
 **Devuelve:**
 
-```json
+```js
 {
   "customerId": int,         // ID del cliente
   "approvedDate": "01/01/2000",  // Fecha de aprobación del préstamo
@@ -223,7 +223,7 @@ Este endpoint requiere un token que se puede obtener a través de `bank/{ id }/g
 
 **Recibe:**
 
-```json
+```js
 {
   "id": int,         // ID del préstamo
   "reason": "string" // Razón del rechazo
@@ -235,7 +235,7 @@ Este endpoint cambia el estado de una solicitud de préstamo de "pending" a "rej
 
 **Devuelve:**
 
-```json
+```js
 {
   "id": int,           // ID del préstamo
   "status": "string",   // Estado actualizado (por ejemplo: "rejected")
