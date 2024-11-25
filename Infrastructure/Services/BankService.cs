@@ -52,7 +52,7 @@ public class BankService : IBankService
 
         var LoanRequest = await _bankRepository.VerifyLoanRequest(loanRequestId);
 
-        if (LoanRequest.Status.ToLower() == "reject" || LoanRequest.Status.ToLower() == "approve")
+        if (LoanRequest.Status.ToLower() != "pending")
             throw new Exception($"La solicitud de préstamo ya ha sido {(LoanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
 
         LoanRequest.Status = "Approve";
