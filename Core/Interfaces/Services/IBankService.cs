@@ -13,5 +13,6 @@ public interface IBankService
     Task<string> GetToken(int Id);
     Task<List<InstallmentsDto>> GetInstallments(int Id, string? status);
     Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue();
+    Task<string> PaidInstallments(InstallmentPaymentRequest installmentPayment);
     List<Installment> GenerateInstallments(Loan loan);
 }

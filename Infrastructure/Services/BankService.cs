@@ -5,6 +5,7 @@ using Core.Interfaces.Services;
 using Core.Request;
 using Mapster;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;
 
@@ -13,16 +14,19 @@ public class BankService : IBankService
     private readonly IBankRepository _bankRepository;
     private readonly IAuthService _authService;
     private readonly IValidator<LoanApplicationRequest> _loanApplicationValidation;
+    private readonly IValidator<InstallmentPaymentRequest> _installmentPayment;
     private readonly IValidator<LoanRejectRequest> _loanRejectValidation;
 
     public BankService(IBankRepository bankRepository,
         IValidator<LoanApplicationRequest> loanApplicationValidation,
         IValidator<LoanRejectRequest> loanRejectValidation,
+        IValidator<InstallmentPaymentRequest> installmentPayment,
         IAuthService authService)
     {
         _bankRepository = bankRepository;
         _loanApplicationValidation = loanApplicationValidation;
         _loanRejectValidation = loanRejectValidation;
+        _installmentPayment = installmentPayment;
         _authService = authService;
     }
 
@@ -98,6 +102,41 @@ public class BankService : IBankService
 
         var Installments = await _bankRepository.GetInstallmentsByLoanId(Id, status);
         return Installments.Adapt<List<InstallmentsDto>>();
+    }
+
+    public async Task<string> PaidInstallments(InstallmentPaymentRequest installmentPayment)
+    {
+        var results = await _installmentPayment.ValidateAsync(installmentPayment);
+
+        if (!results.IsValid)
+            throw new ValidationException(results.Errors);
+
+        var Installments = await _bankRepository.VerifyExistsInstallmentsByLoanId(installmentPayment.Id);
+
+        int RemainingAmount = installmentPayment.Amount;
+        int InstallmentsPaidCount = 0;
+
+        foreach (var Installment in Installments)
+        {
+            if (RemainingAmount >= Installment.TotalAmount)
+            {
+                Installment.Status = "paid";
+                RemainingAmount -= (int)Math.Ceiling(Installment.TotalAmount);
+                InstallmentsPaidCount++;
+            }
+
+            if (RemainingAmount < (int)Math.Ceiling(Installment.TotalAmount))
+                throw new Exception("El monto proporciodo no cubre exactamente las cuotas pendientes.");
+
+            if (RemainingAmount == 0)
+                break;
+
+            if (RemainingAmount > 0)
+                throw new Exception("El monto proporcionado excede el total de las cuotas pendientes.");
+        }
+
+
+        return $"Pago {InstallmentsPaidCount} cuotas.";
     }
 
     public async Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue()

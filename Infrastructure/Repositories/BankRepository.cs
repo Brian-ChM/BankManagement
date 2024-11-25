@@ -56,6 +56,23 @@ public class BankRepository : IBankRepository
             throw new Exception("Seleccione un mes valido.");
     }
 
+    public async Task PaidInstallments(List<Installment> installments)
+    {
+        _context.Installments.UpdateRange(installments);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Installment>> VerifyExistsInstallmentsByLoanId(int LoanId)
+    {
+        var Installments = await _context.Installments
+            .Where(x => x.Status == "pending" && x.LoanId == LoanId)
+            .OrderBy(x => x.DueDate)
+            .ToListAsync() ?? 
+            throw new Exception("No hay cuotas pendientes para este préstamo.");
+
+        return Installments;
+    }
+
     public async Task<Customer> VerifyCustomer(int Id)
     {
         return await _context.Customers.FindAsync(Id) ??
@@ -79,7 +96,7 @@ public class BankRepository : IBankRepository
             .ToListAsync();
     }
 
-    public async Task<List<Installment>> GetInstallmentsByLoanId(int Id,string? status)
+    public async Task<List<Installment>> GetInstallmentsByLoanId(int Id, string? status)
     {
         var query = _context.Installments
             .Include(x => x.Loan)
@@ -92,7 +109,7 @@ public class BankRepository : IBankRepository
         return await query.ToListAsync();
     }
 
-    public async Task<Loan> GetLoanById (int Id)
+    public async Task<Loan> GetLoanById(int Id)
     {
         return await _context.Loans
             .Include(x => x.Customer)

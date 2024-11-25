@@ -46,6 +46,12 @@ public class BankController : BaseApiController
         return Ok(await _bankService.GetInstallments(Id, status));
     }
 
+    [HttpPost("installment/payment")]
+    public async Task<IActionResult> InstallmentPayment([FromBody] InstallmentPaymentRequest installmentPayment)
+    {
+        return Ok(await _bankService.PaidInstallments(installmentPayment));
+    }
+
     [HttpGet("installments/overdue")]
     public async Task<IActionResult> InstallmentsOverdue()
     {
