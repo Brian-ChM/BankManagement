@@ -28,8 +28,7 @@ public class BankService : IBankService
 
     public async Task<string> GetToken(int Id)
     {
-        if (Id <= 0)
-            throw new ArgumentOutOfRangeException(nameof(Id));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
 
         var Customer = await _bankRepository.VerifyCustomer(Id);
         var CustomerDto = Customer.Adapt<CustomerDto>();
@@ -39,8 +38,8 @@ public class BankService : IBankService
 
     public async Task<LoanApproveDto> ApproveLoan(int loanRequestId)
     {
-        if (loanRequestId <= 0)
-            throw new ArgumentOutOfRangeException(nameof(loanRequestId));
+
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(loanRequestId);
 
         var LoanRequest = await _bankRepository.VerifyLoanRequest(loanRequestId);
 
@@ -87,43 +86,24 @@ public class BankService : IBankService
 
     public async Task<LoanDetailedDto> DetailedLoan(int Id)
     {
-        if (Id <= 0)
-            throw new ArgumentOutOfRangeException(nameof(Id));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
 
         var Loan = await _bankRepository.GetLoanById(Id);
-
-        //var TotalPaid = Loan.Installments
-        //    .Where(x => x.LoanId == Id)
-        //    .Sum(x => x.TotalAmount);
-
-        //var DuesPaid = Loan.Installments.Count(x => x.Status == "Paid");
-        //var PendingInstallments = Loan.Installments.Count(x => x.Status == "Pending");
-
-        //var NextExpiration = Loan.Installments
-        //    .FirstOrDefault(x => x.Status == "Pending")?
-        //    .DueDate.ToShortDateString();
-
-        //var LoanCustomer = new LoanCustomerDetailedDto
-        //{
-        //    Id = Loan.Customer.Id,
-        //    Name = $"{Loan.Customer.FirstName} {Loan.Customer.LastName}"
-        //};
-        //return new LoanDetailedDto
-        //{
-        //    Customer = LoanCustomer,
-        //    ApproveDate = Loan.AprovedDate.ToShortDateString(),
-        //    AmountRequest = Loan.Amount,
-        //    TotalPaid = TotalPaid,
-        //    EarnedProfit = TotalPaid - Loan.Amount,
-        //    Months = Loan.Months,
-        //    LoanType = Loan.LoanType,
-        //    Interest = Loan.InterestRate,
-        //    DuesPaid = DuesPaid,
-        //    PendingInstallments = PendingInstallments,
-        //    NextExpirationDate = NextExpiration ?? "No hay cuotas pendientes."
-        //};
-
         return Loan.Adapt<LoanDetailedDto>();
+    }
+
+    public async Task<List<InstallmentsDto>> GetInstallments(int Id, string? status)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+
+        var Installments = await _bankRepository.GetInstallmentsByLoanId(Id, status);
+        return Installments.Adapt<List<InstallmentsDto>>();
+    }
+
+    public async Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue()
+    {
+        var InstallmentsOverdue = await _bankRepository.GetInstallmentsOverdue();
+        return InstallmentsOverdue.Adapt<List<InstallmentsOverdueDto>>();
     }
 
     public List<Installment> GenerateInstallments(Loan loan)

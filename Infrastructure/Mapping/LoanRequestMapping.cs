@@ -25,10 +25,32 @@ public class LoanRequestMapping : IRegister
             .Map(dest => dest.ApprovedDate, src => src.AprovedDate.ToShortDateString())
             .Map(dest => dest.Interest, src => src.InterestRate);
 
+        config.NewConfig<Installment, InstallmentsDto>()
+            .Map(dest => dest.Customer,
+                 src => new CustomerDetailedDto
+                 {
+                     Id = src.Loan.Customer.Id,
+                     Name = $"{src.Loan.Customer.FirstName} {src.Loan.Customer.LastName}"
+                 })
+            .Map(dest => dest.TotalAmount, src => src.TotalAmount)
+            .Map(dest => dest.Status, src => src.Status)
+            .Map(dest => dest.DueDate, src => src.DueDate.ToShortDateString());
+
+        config.NewConfig<Installment, InstallmentsOverdueDto>()
+            .Map(dest => dest.Customer,
+                 src => new CustomerDetailedDto
+                 {
+                     Id = src.Loan.Customer.Id,
+                     Name = $"{src.Loan.Customer.FirstName} {src.Loan.Customer.LastName}"
+                 })
+            .Map(dest => dest.DueDate, src => src.DueDate.ToShortDateString())
+            .Map(dest => dest.DaysLate, src => $"Cuenta con {Math.Max(0, (DateTime.UtcNow.Date - src.DueDate.Date).Days)} días de atraso.")
+            .Map(dest => dest.AmountPending, src => src.TotalAmount);
+
 
         config.NewConfig<Loan, LoanDetailedDto>()
             .Map(dest => dest.Customer,
-                 src => new LoanCustomerDetailedDto
+                 src => new CustomerDetailedDto
                  {
                      Id = src.Customer.Id,
                      Name = $"{src.Customer.FirstName} {src.Customer.LastName}"

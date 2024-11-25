@@ -11,6 +11,8 @@ public interface IBankRepository
     Task<LoanRejectDto> RejectLoan(LoanRequest loanRequest);
     Task<TermInterestRate> GetMonthsByMonths(int months);
     Task<Customer> VerifyCustomer(int Id);
+    Task<List<Installment>> GetInstallmentsByLoanId(int Id, string? status);
+    Task<List<Installment>> GetInstallmentsOverdue();
     Task<LoanRequest> VerifyLoanRequest(int Id);
     Task<Loan> GetLoanById(int Id);
 }

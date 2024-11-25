@@ -2,7 +2,7 @@
 
 public class LoanDetailedDto
 {
-    public LoanCustomerDetailedDto Customer { get; set; } = new();
+    public CustomerDetailedDto Customer { get; set; } = new();
     public string ApproveDate { get; set; } = string.Empty;
     public decimal AmountRequest { get;set; }
     public decimal TotalPaid { get;set; }

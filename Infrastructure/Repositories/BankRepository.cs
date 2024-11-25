@@ -70,6 +70,28 @@ public class BankRepository : IBankRepository
             throw new Exception($"No se encontro la solicitud de prestamo con el Id {Id}");
     }
 
+    public async Task<List<Installment>> GetInstallmentsOverdue()
+    {
+        return await _context.Installments
+            .Include(x => x.Loan)
+            .ThenInclude(x => x.Customer)
+            .Where(x => x.DueDate < DateTime.UtcNow)
+            .ToListAsync();
+    }
+
+    public async Task<List<Installment>> GetInstallmentsByLoanId(int Id,string? status)
+    {
+        var query = _context.Installments
+            .Include(x => x.Loan)
+            .ThenInclude(x => x.Customer)
+            .Where(x => x.Loan.Id == Id);
+
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(x => x.Status == status);
+
+        return await query.ToListAsync();
+    }
+
     public async Task<Loan> GetLoanById (int Id)
     {
         return await _context.Loans

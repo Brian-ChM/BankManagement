@@ -11,5 +11,7 @@ public interface IBankService
     Task<LoanRejectDto> RejectLoan(LoanRejectRequest loanReject);
     Task<LoanDetailedDto> DetailedLoan(int Id);
     Task<string> GetToken(int Id);
+    Task<List<InstallmentsDto>> GetInstallments(int Id, string? status);
+    Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue();
     List<Installment> GenerateInstallments(Loan loan);
 }
