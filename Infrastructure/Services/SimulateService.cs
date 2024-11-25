@@ -41,9 +41,9 @@ public class SimulateService : ISimulateService
 
         return new LoanDto
         {
-            MonthlyPaid = $"{MonthlyPayment.ToString("#,0")}",
+            MonthlyPaid = (int)Math.Ceiling(MonthlyPayment),
             InterestRate = Interest,
-            TotalPaid = $"{TotalAmountPaid.ToString("#,0")}"
+            TotalPaid = (int)Math.Ceiling(TotalAmountPaid)
         };
     }
 

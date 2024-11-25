@@ -71,7 +71,7 @@ public class BankService : IBankService
 
         var LoanRequest = await _bankRepository.VerifyLoanRequest(loanReject.Id);
 
-        if (LoanRequest.Status.ToLower() == "reject" || LoanRequest.Status.ToLower() == "approve")
+        if (LoanRequest.Status.ToLower() != "pending")
             throw new Exception($"La solicitud de préstamo ya ha sido {(LoanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
 
         LoanRequest.Status = "Reject";
@@ -180,6 +180,7 @@ public class BankService : IBankService
 
         return installments;
     }
+
     public async Task<string> GetToken(int Id)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
@@ -200,6 +201,5 @@ public class BankService : IBankService
         }
         throw new Exception("Tipo de prestamo no valido");
     }
-
 
 }

@@ -27,10 +27,7 @@ public class BankRepository : IBankRepository
         _context.Add(AddLoanRequest);
         await _context.SaveChangesAsync();
 
-        return new LoanRequestDto
-        {
-            Message = $"Solicitud lista, estado {AddLoanRequest.Status}"
-        };
+        return AddLoanRequest.Adapt<LoanRequestDto>();
     }
 
     public async Task<LoanApproveDto> ApproveLoan(Loan LoanApproved, List<Installment> installments)

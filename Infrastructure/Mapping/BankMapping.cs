@@ -9,6 +9,9 @@ public class BankMapping : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
+        config.NewConfig<LoanRequest, LoanRequestDto>()
+            .Map(dest => dest.Message, src => $"Solicitud lista, estado {src.Status}");
+
         config.NewConfig<LoanApplicationRequest, LoanRequest>()
             .Map(dest => dest.Amount, src => src.AmountRequest)
             .Map(dest => dest.LoanType, src => src.LoanType);

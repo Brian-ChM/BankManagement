@@ -2,7 +2,7 @@
 
 public class LoanDto
 {
-    public string MonthlyPaid { get; set; } = string.Empty;
-    public string TotalPaid { get; set; } = string.Empty;
+    public int MonthlyPaid { get; set; }
+    public int TotalPaid { get; set; }
     public decimal InterestRate { get; set; }
 }
