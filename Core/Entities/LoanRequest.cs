@@ -5,7 +5,7 @@ public class LoanRequest
     public int Id { get; set; }
     public string LoanType { get; set; } = string.Empty;
     public decimal Amount { get; set; }
-    public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
+    public string Status { get; set; } = "Pending";
     public string? RejectionReason { get; set; }
 
     public int CustomerId { get; set; }

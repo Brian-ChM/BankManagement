@@ -5,7 +5,6 @@ using Core.Request;
 using Infrastructure.Context;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
 namespace Infrastructure.Repositories;
 
@@ -69,6 +68,15 @@ public class BankRepository : IBankRepository
 
     public async Task PaidInstallments(List<Installment> installments)
     {
+        var PaidInstallments = installments.Where(x => x.Status.ToLower() == "paid").Select(x => new Payment
+        {
+            InstallmentId = x.Id,
+            Amount = x.TotalAmount,
+            PaymentDate = DateTime.UtcNow.Date,
+            Status = x.Status,
+        });
+
+        _context.Payments.AddRange(PaidInstallments);
         _context.Installments.UpdateRange(installments);
         await _context.SaveChangesAsync();
     }
@@ -84,7 +92,7 @@ public class BankRepository : IBankRepository
     public async Task<List<Installment>> VerifyExistsInstallmentsByLoanId(int LoanId)
     {
         var Installments = await _context.Installments
-            .Where(x => x.Status == "pending" && x.LoanId == LoanId)
+            .Where(x => x.Status.ToLower() == "pending" && x.LoanId == LoanId)
             .OrderBy(x => x.DueDate)
             .ToListAsync() ??
             throw new Exception("No hay cuotas pendientes para este préstamo.");
@@ -100,7 +108,7 @@ public class BankRepository : IBankRepository
             .Where(x => x.Loan.Id == Id);
 
         if (!string.IsNullOrEmpty(status))
-            query = query.Where(x => x.Status == status);
+            query = query.Where(x => x.Status.ToLower() == status.ToLower());
 
         return await query.ToListAsync();
     }

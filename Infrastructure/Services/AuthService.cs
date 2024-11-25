@@ -19,8 +19,6 @@ public class AuthService : IAuthService
             new SymmetricSecurityKey(Secret),
             SecurityAlgorithms.HmacSha256);
 
-
-        // Agregar validación si no existe el customer con el id
         var Claims = new ClaimsIdentity(
         [
             new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),

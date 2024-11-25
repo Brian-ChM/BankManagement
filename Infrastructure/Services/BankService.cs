@@ -52,8 +52,8 @@ public class BankService : IBankService
 
         var LoanRequest = await _bankRepository.VerifyLoanRequest(loanRequestId);
 
-        if (LoanRequest.Status == "Approve")
-            throw new Exception("La solicitud de prestamo ya ha sido Aprovada.");
+        if (LoanRequest.Status.ToLower() == "reject" || LoanRequest.Status.ToLower() == "approve")
+            throw new Exception($"La solicitud de préstamo ya ha sido {(LoanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
 
         LoanRequest.Status = "Approve";
         var Approve = LoanRequest.Adapt<Loan>();
@@ -71,8 +71,8 @@ public class BankService : IBankService
 
         var LoanRequest = await _bankRepository.VerifyLoanRequest(loanReject.Id);
 
-        if (LoanRequest.Status == "Reject")
-            throw new Exception("La solicitud de prestamo ya ha sido rechazada.");
+        if (LoanRequest.Status.ToLower() == "reject" || LoanRequest.Status.ToLower() == "approve")
+            throw new Exception($"La solicitud de préstamo ya ha sido {(LoanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
 
         LoanRequest.Status = "Reject";
         LoanRequest.RejectionReason = loanReject.Reason;
@@ -96,31 +96,39 @@ public class BankService : IBankService
             throw new ValidationException(results.Errors);
 
         var Installments = await _bankRepository.VerifyExistsInstallmentsByLoanId(installmentPayment.Id);
+        var InstallmentsPendings = Installments.Where(x => x.Status.Equals("pending", StringComparison.CurrentCultureIgnoreCase)).Count();
 
         int RemainingAmount = installmentPayment.Amount;
         int InstallmentsPaidCount = 0;
 
+        if (InstallmentsPendings <= 0)
+            throw new Exception("No posee cuotas pendientes.");
+
         foreach (var Installment in Installments)
         {
+            var InstallmentRound = (int)Math.Ceiling(Installment.TotalAmount);
+
             if (RemainingAmount >= Installment.TotalAmount)
             {
                 Installment.Status = "paid";
-                RemainingAmount -= (int)Math.Ceiling(Installment.TotalAmount);
+                RemainingAmount -= InstallmentRound;
                 InstallmentsPaidCount++;
             }
-
-            if (RemainingAmount < (int)Math.Ceiling(Installment.TotalAmount))
-                throw new Exception("El monto proporciodo no cubre exactamente las cuotas pendientes.");
+            else
+            {
+                throw new Exception($"Pago no completado, el monto de una cuota es {InstallmentRound - InstallmentsPaidCount}.");
+            }
 
             if (RemainingAmount == 0)
                 break;
-
-            if (RemainingAmount > 0)
-                throw new Exception("El monto proporcionado excede el total de las cuotas pendientes.");
         }
 
+        if (RemainingAmount > 0)
+            throw new Exception("El monto proporcionado excede el total de las cuotas pendientes.");
 
-        return $"Pago {InstallmentsPaidCount} cuotas.";
+        await _bankRepository.PaidInstallments(Installments);
+
+        return $"Pago {InstallmentsPaidCount} cuotas, tiene pendiente {InstallmentsPendings - InstallmentsPaidCount}";
     }
 
     public async Task<List<InstallmentsDto>> GetInstallments(int Id, string? status)
@@ -165,7 +173,7 @@ public class BankService : IBankService
                 PrincipalAmount = principalAmount,
                 InterestAmount = interestAmount,
                 DueDate = DateTime.SpecifyKind(DueDate, DateTimeKind.Utc),
-                Status = "Pending",
+                Status = "pending",
             };
             installments.Add(Installment);
         }

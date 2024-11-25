@@ -5,7 +5,7 @@ using Mapster;
 
 namespace Infrastructure.Mapping;
 
-public class LoanRequestMapping : IRegister
+public class BankMapping : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
@@ -61,14 +61,15 @@ public class LoanRequestMapping : IRegister
             .Map(dest => dest.TotalPaid, src => src.Installments.Sum(x => x.TotalAmount))
             .Map(dest => dest.EarnedProfit, src => src.Installments.Sum(x => x.TotalAmount) - src.Amount)
             .Map(dest => dest.Interest, src => src.InterestRate)
-            .Map(dest => dest.DuesPaid, src => src.Installments.Count(x => x.Status == "Paid"))
-            .Map(dest => dest.PendingInstallments, src => src.Installments.Count(x => x.Status == "Pending"))
+            .Map(dest => dest.DuesPaid, src => src.Installments.Where(x => x.Status.ToLower() == "paid").Count())
+            .Map(dest => dest.PendingInstallments, src => src.Installments.Where(x => x.Status.ToLower() == "pending" && x.DueDate < DateTime.UtcNow.Date).Count())
             .Map(dest => dest.NextExpirationDate, src => NextExpiration(src));
     }
     private static string NextExpiration(Loan src)
     {
         return src.Installments
-            .FirstOrDefault(x => x.Status == "Pending")?
+            .OrderBy(x => x.DueDate)
+            .FirstOrDefault(x => x.DueDate >= DateTime.UtcNow.Date)?
             .DueDate.ToShortDateString() ??
             "No hay cuotas pendientes.";
     }
