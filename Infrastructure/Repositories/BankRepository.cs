@@ -52,10 +52,10 @@ public class BankRepository : IBankRepository
         return await _context.Installments
             .Include(x => x.Loan)
             .ThenInclude(x => x.Customer)
-            .Where(x => x.DueDate < DateTime.UtcNow)
+            .Where(x => x.DueDate < DateTime.UtcNow && x.Status.ToLower() == "pending")
             .ToListAsync();
     }
-
+    
 
     public async Task<TermInterestRate> GetMonthsByMonths(int Months)
     {
@@ -102,6 +102,7 @@ public class BankRepository : IBankRepository
         var query = _context.Installments
             .Include(x => x.Loan)
             .ThenInclude(x => x.Customer)
+            .OrderBy(x => x.DueDate)
             .Where(x => x.Loan.Id == Id);
 
         if (!string.IsNullOrEmpty(status))
