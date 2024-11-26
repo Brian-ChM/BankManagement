@@ -49,10 +49,10 @@ public static class DependencyInjection
 
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        var ConnectionStrings = configuration.GetConnectionString("conncetion");
+        var connectionStrings = configuration.GetConnectionString("conncetion");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(ConnectionStrings));
+            options.UseNpgsql(connectionStrings));
 
         return services;
     }
