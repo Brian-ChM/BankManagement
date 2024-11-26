@@ -26,24 +26,22 @@ public class SimulateService : ISimulateService
         if (!result.IsValid)
             throw new ValidationException(result.Errors);
 
-        var TermInterest = await _simulate.GetMonthsByMonths(request.Month);
+        var termInterest = await _simulate.GetMonthsByMonths(request.Month);
 
-        decimal Interest = TermInterest.Interest;
+        decimal interest = termInterest.Interest;
 
-        decimal MonthlyInterest = Interest / 100 / 12;
+        decimal monthlyInterest = interest / 100 / 12;
 
-        decimal MonthlyPayment = request.Amount * (MonthlyInterest * (decimal)Math.Pow((double)(1 + MonthlyInterest), request.Month))
-                                 / ((decimal)Math.Pow((double)(1 + MonthlyInterest), request.Month) - 1);
+        decimal monthlyPayment = request.Amount * (monthlyInterest * (decimal)Math.Pow((double)(1 + monthlyInterest), request.Month))
+                                 / ((decimal)Math.Pow((double)(1 + monthlyInterest), request.Month) - 1);
 
-        decimal TotalAmountPaid = (MonthlyPayment * request.Month);
-
-        decimal InterestAmount = TotalAmountPaid - request.Amount;
+        decimal totalAmountPaid = (monthlyPayment * request.Month);
 
         return new LoanDto
         {
-            MonthlyPaid = (int)Math.Ceiling(MonthlyPayment),
-            InterestRate = Interest,
-            TotalPaid = (int)Math.Ceiling(TotalAmountPaid)
+            MonthlyPaid = (int)Math.Ceiling(monthlyPayment),
+            InterestRate = interest,
+            TotalPaid = (int)Math.Ceiling(totalAmountPaid)
         };
     }
 

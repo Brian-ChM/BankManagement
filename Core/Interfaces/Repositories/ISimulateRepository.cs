@@ -4,5 +4,5 @@ namespace Core.Interfaces.Repositories;
 
 public interface ISimulateRepository
 {
-    Task<TermInterestRate> GetMonthsByMonths(int Months);
+    Task<TermInterestRate> GetMonthsByMonths(int months);
 }

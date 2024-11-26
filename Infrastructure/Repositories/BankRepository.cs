@@ -19,24 +19,24 @@ public class BankRepository : IBankRepository
 
     public async Task<LoanRequestDto> AddLoanRequest(LoanApplicationRequest loanApplication)
     {
-        var TermInterest = await GetMonthsByMonths(loanApplication.MonthRequest);
+        var termInterest = await GetMonthsByMonths(loanApplication.MonthRequest);
 
-        var AddLoanRequest = loanApplication.Adapt<LoanRequest>();
-        AddLoanRequest.TermInterestRateId = TermInterest.Id;
+        var addLoanRequest = loanApplication.Adapt<LoanRequest>();
+        addLoanRequest.TermInterestRateId = termInterest.Id;
 
-        _context.Add(AddLoanRequest);
+        _context.Add(addLoanRequest);
         await _context.SaveChangesAsync();
 
-        return AddLoanRequest.Adapt<LoanRequestDto>();
+        return addLoanRequest.Adapt<LoanRequestDto>();
     }
 
-    public async Task<LoanApproveDto> ApproveLoan(Loan LoanApproved, List<Installment> installments)
+    public async Task<LoanApproveDto> ApproveLoan(Loan loanApproved, List<Installment> installments)
     {
-        _context.Loans.Add(LoanApproved);
+        _context.Loans.Add(loanApproved);
         _context.Installments.AddRange(installments);
         await _context.SaveChangesAsync();
 
-        return LoanApproved.Adapt<LoanApproveDto>();
+        return loanApproved.Adapt<LoanApproveDto>();
     }
 
     public async Task<LoanRejectDto> RejectLoan(LoanRequest loanRequest)
@@ -55,17 +55,17 @@ public class BankRepository : IBankRepository
             .Where(x => x.DueDate < DateTime.UtcNow && x.Status.ToLower() == "pending")
             .ToListAsync();
     }
-    
 
-    public async Task<TermInterestRate> GetMonthsByMonths(int Months)
+
+    public async Task<TermInterestRate> GetMonthsByMonths(int months)
     {
-        return await _context.TermInterestRates.FirstOrDefaultAsync(x => x.Months == Months) ??
+        return await _context.TermInterestRates.FirstOrDefaultAsync(x => x.Months == months) ??
             throw new Exception("Seleccione un mes valido.");
     }
 
     public async Task PaidInstallments(List<Installment> installments)
     {
-        var PaidInstallments = installments.Where(x => x.Status.ToLower() == "paid").Select(x => new Payment
+        var paidInstallments = installments.Where(x => x.Status.ToLower() == "paid").Select(x => new Payment
         {
             InstallmentId = x.Id,
             Amount = x.TotalAmount,
@@ -73,37 +73,36 @@ public class BankRepository : IBankRepository
             Status = x.Status,
         });
 
-        _context.Payments.AddRange(PaidInstallments);
+        _context.Payments.AddRange(paidInstallments);
         _context.Installments.UpdateRange(installments);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<LoanRequest> VerifyLoanRequest(int Id)
+    public async Task<LoanRequest> VerifyLoanRequest(int id)
     {
         return await _context.LoanRequests
             .Include(x => x.Customer)
-            .Include(x => x.TermInterestRate).FirstOrDefaultAsync(x => x.Id.Equals(Id)) ??
-            throw new Exception($"No se encontro la solicitud de prestamo con el Id {Id}");
+            .Include(x => x.TermInterestRate).FirstOrDefaultAsync(x => x.Id.Equals(id)) ??
+            throw new Exception($"No se encontro la solicitud de prestamo con el Id {id}");
     }
 
-    public async Task<List<Installment>> VerifyExistsInstallmentsByLoanId(int LoanId)
+    public async Task<List<Installment>> VerifyExistsInstallmentsByLoanId(int loanId)
     {
-        var Installments = await _context.Installments
-            .Where(x => x.Status.ToLower() == "pending" && x.LoanId == LoanId)
+        var installments = await _context.Installments
+            .Where(x => x.Status.ToLower() == "pending" && x.LoanId == loanId)
             .OrderBy(x => x.DueDate)
-            .ToListAsync() ??
-            throw new Exception("No hay cuotas pendientes para este préstamo.");
+            .ToListAsync();
 
-        return Installments;
+        return installments;
     }
 
-    public async Task<List<Installment>> GetInstallmentsByLoanId(int Id, string? status)
+    public async Task<List<Installment>> GetInstallmentsByLoanId(int id, string? status)
     {
         var query = _context.Installments
             .Include(x => x.Loan)
             .ThenInclude(x => x.Customer)
             .OrderBy(x => x.DueDate)
-            .Where(x => x.Loan.Id == Id);
+            .Where(x => x.Loan.Id == id);
 
         if (!string.IsNullOrEmpty(status))
             query = query.Where(x => x.Status.ToLower() == status.ToLower());
@@ -111,18 +110,18 @@ public class BankRepository : IBankRepository
         return await query.ToListAsync();
     }
 
-    public async Task<Customer> VerifyCustomer(int Id)
+    public async Task<Customer> VerifyCustomer(int id)
     {
-        return await _context.Customers.FindAsync(Id) ??
-            throw new Exception($"No se encontro un cliente con el Id {Id}");
+        return await _context.Customers.FindAsync(id) ??
+            throw new Exception($"No se encontro un cliente con el Id {id}");
     }
 
-    public async Task<Loan> GetLoanById(int Id)
+    public async Task<Loan> GetLoanById(int id)
     {
         return await _context.Loans
             .Include(x => x.Customer)
             .Include(x => x.Installments)
-            .FirstOrDefaultAsync(x => x.Id == Id) ??
+            .FirstOrDefaultAsync(x => x.Id == id) ??
             throw new Exception("El prestamo solicitado no existe.");
     }
 }

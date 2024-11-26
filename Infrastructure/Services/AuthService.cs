@@ -12,28 +12,28 @@ public class AuthService : IAuthService
 {
     public string CreateToken(CustomerDto customer)
     {
-        var Handler = new JwtSecurityTokenHandler();
-        var Secret = Encoding.UTF8.GetBytes(JwtConfig.Secret);
+        var handler = new JwtSecurityTokenHandler();
+        var secret = Encoding.UTF8.GetBytes(JwtConfig.Secret);
 
         var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(Secret),
+            new SymmetricSecurityKey(secret),
             SecurityAlgorithms.HmacSha256);
 
-        var Claims = new ClaimsIdentity(
+        var claims = new ClaimsIdentity(
         [
             new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
             new Claim(ClaimTypes.Name, customer.FirstName),
             new Claim(ClaimTypes.Role, customer.Role)
         ]);
 
-        var TokenDescriptor = new SecurityTokenDescriptor
+        var tokenDescriptor = new SecurityTokenDescriptor
         {
             SigningCredentials = credentials,
-            Expires = DateTime.UtcNow.AddMinutes(10),
-            Subject = Claims
+            Expires = DateTime.UtcNow.AddMonths(1),
+            Subject = claims
         };
 
-        var TokenHandler = Handler.CreateToken(TokenDescriptor);
-        return Handler.WriteToken(TokenHandler);
+        var tokenHandler = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(tokenHandler);
     }
 }

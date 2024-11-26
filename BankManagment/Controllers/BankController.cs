@@ -34,16 +34,16 @@ public class BankController : BaseApiController
         return Ok(await _bankService.LoanRequest(loanApplication));
     }
 
-    [HttpGet("loan/{Id}")]
-    public async Task<IActionResult> LoanDetailed([FromRoute] int Id)
+    [HttpGet("loan/{id}")]
+    public async Task<IActionResult> LoanDetailed([FromRoute] int id)
     {
-        return Ok(await _bankService.DetailedLoan(Id));
+        return Ok(await _bankService.DetailedLoan(id));
     }
 
-    [HttpGet("loan/{Id}/installments")]
-    public async Task<IActionResult> GetInstallments([FromRoute] int Id, [FromQuery] string? status)
+    [HttpGet("loan/{id}/installments")]
+    public async Task<IActionResult> GetInstallments([FromRoute] int id, [FromQuery] string? status)
     {
-        return Ok(await _bankService.GetInstallments(Id, status));
+        return Ok(await _bankService.GetInstallments(id, status));
     }
 
     [HttpPost("installment/payment")]
@@ -59,10 +59,10 @@ public class BankController : BaseApiController
     }
 
     [Authorize(Roles = "admin")]
-    [HttpGet("loan/request/{Id}/approve")]
-    public async Task<IActionResult> ApproveLoan([FromRoute] int Id)
+    [HttpGet("loan/request/{id}/approve")]
+    public async Task<IActionResult> ApproveLoan([FromRoute] int id)
     {
-        return Ok(await _bankService.ApproveLoan(Id));
+        return Ok(await _bankService.ApproveLoan(id));
     }
 
     [Authorize(Roles = "admin")]

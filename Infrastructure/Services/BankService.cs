@@ -50,16 +50,16 @@ public class BankService : IBankService
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(loanRequestId);
 
-        var LoanRequest = await _bankRepository.VerifyLoanRequest(loanRequestId);
+        var loanRequest = await _bankRepository.VerifyLoanRequest(loanRequestId);
 
-        if (LoanRequest.Status.ToLower() != "pending")
-            throw new Exception($"La solicitud de préstamo ya ha sido {(LoanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
+        if (loanRequest.Status.ToLower() != "pending")
+            throw new Exception($"La solicitud de préstamo ya ha sido {(loanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
 
-        LoanRequest.Status = "Approve";
-        var Approve = LoanRequest.Adapt<Loan>();
-        var Installments = GenerateInstallments(Approve);
+        loanRequest.Status = "Approve";
+        var approve = loanRequest.Adapt<Loan>();
+        var installments = GenerateInstallments(approve);
 
-        return await _bankRepository.ApproveLoan(Approve, Installments);
+        return await _bankRepository.ApproveLoan(approve, installments);
     }
 
     public async Task<LoanRejectDto> RejectLoan(LoanRejectRequest loanReject)
@@ -69,23 +69,23 @@ public class BankService : IBankService
         if (!results.IsValid)
             throw new ValidationException(results.Errors);
 
-        var LoanRequest = await _bankRepository.VerifyLoanRequest(loanReject.Id);
+        var loanRequest = await _bankRepository.VerifyLoanRequest(loanReject.Id);
 
-        if (LoanRequest.Status.ToLower() != "pending")
-            throw new Exception($"La solicitud de préstamo ya ha sido {(LoanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
+        if (loanRequest.Status.ToLower() != "pending")
+            throw new Exception($"La solicitud de préstamo ya ha sido {(loanRequest.Status.ToLower() == "reject" ? "rechazada" : "aprobada")}.");
 
-        LoanRequest.Status = "Reject";
-        LoanRequest.RejectionReason = loanReject.Reason;
+        loanRequest.Status = "Reject";
+        loanRequest.RejectionReason = loanReject.Reason;
 
-        return await _bankRepository.RejectLoan(LoanRequest);
+        return await _bankRepository.RejectLoan(loanRequest);
     }
 
-    public async Task<LoanDetailedDto> DetailedLoan(int Id)
+    public async Task<LoanDetailedDto> DetailedLoan(int id)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
 
-        var Loan = await _bankRepository.GetLoanById(Id);
-        return Loan.Adapt<LoanDetailedDto>();
+        var loan = await _bankRepository.GetLoanById(id);
+        return loan.Adapt<LoanDetailedDto>();
     }
 
     public async Task<string> PaidInstallments(InstallmentPaymentRequest installmentPayment)
@@ -95,54 +95,58 @@ public class BankService : IBankService
         if (!results.IsValid)
             throw new ValidationException(results.Errors);
 
-        var Installments = await _bankRepository.VerifyExistsInstallmentsByLoanId(installmentPayment.Id);
-        var InstallmentsPendings = Installments.Where(x => x.Status.Equals("pending", StringComparison.CurrentCultureIgnoreCase)).Count();
+        var installments = await _bankRepository.VerifyExistsInstallmentsByLoanId(installmentPayment.Id);
 
-        int RemainingAmount = installmentPayment.Amount;
-        int InstallmentsPaidCount = 0;
+        if (installments.Count == 0)
+            throw new Exception("No se encontro un prestamo con el Id solicitado.");
 
-        if (InstallmentsPendings <= 0)
+        var installmentsPendings = installments.Where(x => x.Status.Equals("pending", StringComparison.CurrentCultureIgnoreCase)).Count();
+
+        int remainingAmount = installmentPayment.Amount;
+        int installmentsPaidCount = 0;
+
+        if (installmentsPendings <= 0)
             throw new Exception("No posee cuotas pendientes.");
 
-        foreach (var Installment in Installments)
+        foreach (var installment in installments)
         {
-            var InstallmentRound = (int)Math.Ceiling(Installment.TotalAmount);
+            var installmentRound = (int)Math.Ceiling(installment.TotalAmount);
 
-            if (RemainingAmount >= Installment.TotalAmount)
+            if (remainingAmount >= installment.TotalAmount)
             {
-                Installment.Status = "paid";
-                RemainingAmount -= InstallmentRound;
-                InstallmentsPaidCount++;
+                installment.Status = "paid";
+                remainingAmount -= installmentRound;
+                installmentsPaidCount++;
             }
             else
             {
-                throw new Exception($"Pago no completado, el monto de una cuota es {InstallmentRound - InstallmentsPaidCount}.");
+                throw new Exception($"Pago no completado, el monto de una cuota es {installmentRound - installmentsPaidCount}.");
             }
 
-            if (RemainingAmount == 0)
+            if (remainingAmount == 0)
                 break;
         }
 
-        if (RemainingAmount > 0)
+        if (remainingAmount > 0)
             throw new Exception("El monto proporcionado excede el total de las cuotas pendientes.");
 
-        await _bankRepository.PaidInstallments(Installments);
+        await _bankRepository.PaidInstallments(installments);
 
-        return $"Pago {InstallmentsPaidCount} cuotas, tiene pendiente {InstallmentsPendings - InstallmentsPaidCount}";
+        return $"Pago {installmentsPaidCount} cuotas, tiene pendiente {installmentsPendings - installmentsPaidCount}";
     }
 
-    public async Task<List<InstallmentsDto>> GetInstallments(int Id, string? status)
+    public async Task<List<InstallmentsDto>> GetInstallments(int id, string? status)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
 
-        var Installments = await _bankRepository.GetInstallmentsByLoanId(Id, status);
-        return Installments.Adapt<List<InstallmentsDto>>();
+        var installments = await _bankRepository.GetInstallmentsByLoanId(id, status);
+        return installments.Adapt<List<InstallmentsDto>>();
     }
 
     public async Task<List<InstallmentsOverdueDto>> GetInstallmentsOverdue()
     {
-        var InstallmentsOverdue = await _bankRepository.GetInstallmentsOverdue();
-        return InstallmentsOverdue.Adapt<List<InstallmentsOverdueDto>>();
+        var installmentsOverdue = await _bankRepository.GetInstallmentsOverdue();
+        return installmentsOverdue.Adapt<List<InstallmentsOverdueDto>>();
     }
 
 
@@ -160,35 +164,35 @@ public class BankService : IBankService
 
         for (int i = 1; i <= months; i++)
         {
-            var DueDate = new DateTime(loan.AprovedDate.Year, loan.AprovedDate.Month, 1).AddMonths(i);
+            var dueDate = new DateTime(loan.AprovedDate.Year, loan.AprovedDate.Month, 1).AddMonths(i);
             decimal interestAmount = principal * monthlyInterestRate;
             decimal principalAmount = monthlyPayment - interestAmount;
             principal -= principalAmount;
 
 
-            var Installment = new Installment
+            var installment = new Installment
             {
                 LoanId = loan.Id,
                 TotalAmount = monthlyPayment,
                 PrincipalAmount = principalAmount,
                 InterestAmount = interestAmount,
-                DueDate = DateTime.SpecifyKind(DueDate, DateTimeKind.Utc),
+                DueDate = DateTime.SpecifyKind(dueDate, DateTimeKind.Utc),
                 Status = "pending",
             };
-            installments.Add(Installment);
+            installments.Add(installment);
         }
 
         return installments;
     }
 
-    public async Task<string> GetToken(int Id)
+    public async Task<string> GetToken(int id)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Id);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
 
-        var Customer = await _bankRepository.VerifyCustomer(Id);
-        var CustomerDto = Customer.Adapt<CustomerDto>();
+        var customer = await _bankRepository.VerifyCustomer(id);
+        var customerDto = customer.Adapt<CustomerDto>();
 
-        return _authService.CreateToken(CustomerDto);
+        return _authService.CreateToken(customerDto);
     }
     public string GetLoanType(string value)
     {

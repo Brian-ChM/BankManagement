@@ -25,14 +25,14 @@ public class ExeptionHandlerMiddleware
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = _contentType;
-            var Error = new ErrorModel
+            var error = new ErrorModel
             {
                 Message = sqlEx.InnerException?.InnerException?.Message ??
                     "Ocurrió un error inesperado en la base de datos."
             };
 
-            var ErrorJson = JsonSerializer.Serialize(Error);
-            await context.Response.WriteAsync(ErrorJson);
+            var errorJson = JsonSerializer.Serialize(error);
+            await context.Response.WriteAsync(errorJson);
         }
         catch (FluentValidation.ValidationException validEx)
         {
@@ -57,13 +57,13 @@ public class ExeptionHandlerMiddleware
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = _contentType;
-            var Error = new ErrorModel
+            var error = new ErrorModel
             {
                 Message = ex.Message
             };
 
-            var ErrorJson = JsonSerializer.Serialize(Error);
-            await context.Response.WriteAsync(ErrorJson);
+            var errorJson = JsonSerializer.Serialize(error);
+            await context.Response.WriteAsync(errorJson);
         }
     }
 }

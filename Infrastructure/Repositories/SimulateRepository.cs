@@ -15,9 +15,9 @@ public class SimulateRepository : ISimulateRepository
         _context = context;
     }
 
-    public async Task<TermInterestRate> GetMonthsByMonths(int Months)
+    public async Task<TermInterestRate> GetMonthsByMonths(int months)
     {
-        return await _context.TermInterestRates.FirstOrDefaultAsync(x => x.Months == Months) ??
+        return await _context.TermInterestRates.FirstOrDefaultAsync(x => x.Months == months) ??
             throw new Exception("Seleccione un mes valido.");
     }
 }
