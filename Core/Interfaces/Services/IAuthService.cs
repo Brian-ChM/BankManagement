@@ -1,8 +1,6 @@
-﻿using Core.DTOs;
-
-namespace Core.Interfaces.Services;
+﻿namespace Core.Interfaces.Services;
 
 public interface IAuthService
 {
-    string CreateToken(CustomerDto customer);
+    Task<string> CreateToken(int id);
 }

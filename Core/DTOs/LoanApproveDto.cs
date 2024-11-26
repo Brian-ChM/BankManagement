@@ -2,6 +2,7 @@
 
 public class LoanApproveDto
 {
+    public int LoanId { get; set; }
     public int CustomerId { get; set; }
     public string ApprovedDate { get; set; } = string.Empty;
     public decimal Amount { get; set; }

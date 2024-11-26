@@ -1,6 +1,4 @@
-﻿using Core.Entities;
-
-namespace Core.Request;
+﻿namespace Core.Request;
 
 public class LoanApplicationRequest
 {

@@ -34,16 +34,18 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddScoped<ISimulateService, SimulateService>();
-        services.AddScoped<IBankService, BankService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IInstallmentService, InstallmentService>();
+        services.AddScoped<ILoanService, LoanService>();
+        services.AddScoped<ISimulateService, SimulateService>();
         return services;
     }
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
+        services.AddScoped<IInstallmentRepository, InstallmentRepository>();
         services.AddScoped<ISimulateRepository, SimulateRepository>();
-        services.AddScoped<IBankRepository, BankRepository>();
+        services.AddScoped<ILoanRepository, LoanRepository>();
         return services;
     }
 

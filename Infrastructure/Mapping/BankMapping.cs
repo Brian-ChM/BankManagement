@@ -10,6 +10,7 @@ public class BankMapping : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<LoanRequest, LoanRequestDto>()
+            .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Message, src => $"Solicitud lista, estado {src.Status}");
 
         config.NewConfig<LoanApplicationRequest, LoanRequest>()
@@ -26,6 +27,7 @@ public class BankMapping : IRegister
             .Ignore(dest => dest.Customer);
 
         config.NewConfig<Loan, LoanApproveDto>()
+            .Map(dest => dest.LoanId, src => src.Id)
             .Map(dest => dest.ApprovedDate, src => src.AprovedDate.ToShortDateString())
             .Map(dest => dest.Interest, src => src.InterestRate);
 
