@@ -10,7 +10,7 @@ cd BankManagement
 ###### 2. Crear el contenedor de Docker o usar una base de datos PostgreSQL
 
 ```bash
-docker container run
+docker container run ^
 -dp 5432:5432 ^
 --name posgres-db ^
 -e POSTGRES_PASSWORD=123456 ^
