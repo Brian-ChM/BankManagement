@@ -35,7 +35,7 @@ dotnet run --project .\BankManagement\
 
 # Uso
 
-###### `[POST] bank/{ id }/get-token`
+##### `[POST] auth/{ id }/token`
 
 **Recibe:** `Id: int`
 
@@ -46,89 +46,55 @@ El 'Id' recibido debe corresponder a un cliente. Con este identificador se gener
 
 ---
 
-###### `[POST] bank/loan/simulate`
-
-**Recibe:**
-
-```js
-{
-  "amount": int,  // Monto solicitado
-  "month": int    // Cantidad de cuotas solicitadas 
-}
-```
-
-**Descripción:**  
-Simula un préstamo basado en los datos proporcionados. El interés puede variar dependiendo de la cantidad de cuotas seleccionadas.
-
-**Devuelve:**
-
-```js
-{
-  "monthlyPaid": int,     // Monto mensual a pagar.
-  "totalPaid": int,       // Monto total a pagar al finalizar el préstamo.
-  "interestRate": decimal // Tasa de interés anual aplicada al préstamo.
-}
-```
-
----
-
-###### `[POST] bank/loan/request`
-
-**Recibe:**
-
-```js
-{
-  "customerId": int,      // ID del cliente solicitante.
-  "loanType": "string",   // Tipo de préstamo: "personal", "vivienda", "automotriz".
-  "amountRequest": int,   // Monto solicitado.
-  "monthRequest": int     // Número de meses solicitados para el préstamo.
-}
-```
-
-**Descripción:**  
-Genera una solicitud de préstamo para un cliente específico. El estado inicial de la solicitud es "pending" (pendiente) y debe ser aprobada o rechazada por un usuario con rol de 'admin'.
-
-**Devuelve:**
-
-```js
-{
-  "message": "Solicitud lista, estado Pending"
-}
-```
-
----
-
-###### `[GET] bank/loan/{ id }`
+##### `[GET] auth/loan-request/{ id }/approve`
 
 **Recibe:** `Id: int`
 
 **Descripción:**  
-Obtiene todos los detalles de un préstamo aprobado, identificado por el 'Id'. La información incluye el monto solicitado, las cuotas pagadas y pendientes, y el estado general del préstamo.
+Este endpoint requiere un token que se puede obtener a través de `bank/{ id }/get-token`. Una vez autorizado, la solicitud de préstamo pasa del estado "pending" a "approved". Se agrega un nuevo registro en la tabla de préstamos con los datos correspondientes y se generan las cuotas para este préstamo, cada una con estado "pending".
 
 **Devuelve:**
 
 ```js
 {
-  "customer": {
-    "id": int,            // ID del cliente
-    "name": "string"      // Nombre del cliente
-  },
-  "approveDate": "01/01/2000",    // Fecha de aprobación del préstamo
-  "amountRequest": int,           // Monto solicitado
-  "totalPaid": decimal,           // Total pagado hasta la fecha
-  "earnedProfit": decimal,        // Ganancia generada por el préstamo
-  "months": int,                  // Número de meses del préstamo
-  "loanType": "string",           // Tipo de préstamo: "personal", "vivienda", "automotriz"
-  "interest": decimal,            // Tasa de interés aplicada
-  "duesPaid": int,                // Cuotas pagadas
-  "pendingInstallments": int,     // Cuotas pendientes
-  "nextExpirationDate": "01/02/2000" // Fecha de vencimiento de la próxima cuota
+  "customerId": int,         // ID del cliente
+  "approvedDate": "01/01/2000",  // Fecha de aprobación del préstamo
+  "amount": int,             // Monto aprobado
+  "months": int,             // Duración del préstamo en meses
+  "interest": decimal,      // Tasa de interés aplicada
+  "loanType": "string"      // Tipo de préstamo (por ejemplo: "personal", "vivienda", "automotriz")
 }
 ```
 
 ---
 
-###### `[GET] bank/loan/{ id }/installments`
+##### `[POST] auth/loan-request/reject`
+
+**Recibe:**
+
+```js
+{
+  "id": int,         // ID del préstamo
+  "reason": "string" // Razón del rechazo
+}
+```
+
+**Descripción:**  
+Este endpoint cambia el estado de una solicitud de préstamo de "pending" a "rejected", si no ha sido previamente aprobada o rechazada. No se agrega un nuevo registro en la tabla de préstamos, solo se actualiza el estado.
+
+**Devuelve:**
+
+```js
+{
+  "id": int,           // ID del préstamo
+  "status": "string",   // Estado actualizado (por ejemplo: "rejected")
+  "rejectionReason": "string" // Razón del rechazo
+}
+```
+
+---
+
+##### `[GET] installments/loan/{ id }`
 
 **Recibe:** `Id: int, Status: string (opcional)`
 
@@ -154,7 +120,7 @@ Obtiene una lista de todas las cuotas asociadas a un préstamo identificado por 
 
 ---
 
-###### `[POST] bank/installments/payment`
+##### `[POST] installments/payment`
 
 **Recibe:**
 
@@ -178,7 +144,7 @@ Realiza el pago de una o varias cuotas de un préstamo, identificadas por su 'id
 
 ---
 
-###### `[GET] bank/installments/overdue`
+##### `[GET] installments/overdue`
 
 **Descripción:**  
 Obtiene todas las cuotas que están pendientes de pago y cuya fecha de vencimiento ya ha pasado.
@@ -202,49 +168,83 @@ Obtiene todas las cuotas que están pendientes de pago y cuya fecha de vencimien
 
 ---
 
-###### `[GET] bank/loan/request/{ id }/approve`
-
-**Recibe:** `Id: int`
-
-**Descripción:**  
-Este endpoint requiere un token que se puede obtener a través de `bank/{ id }/get-token`. Una vez autorizado, la solicitud de préstamo pasa del estado "pending" a "approved". Se agrega un nuevo registro en la tabla de préstamos con los datos correspondientes y se generan las cuotas para este préstamo, cada una con estado "pending".
-
-**Devuelve:**
-
-```js
-{
-  "customerId": int,         // ID del cliente
-  "approvedDate": "01/01/2000",  // Fecha de aprobación del préstamo
-  "amount": int,             // Monto aprobado
-  "months": int,             // Duración del préstamo en meses
-  "interest": decimal,      // Tasa de interés aplicada
-  "loanType": "string"      // Tipo de préstamo (por ejemplo: "personal", "vivienda", "automotriz")
-}
-```
-
----
-
-###### `[POST] bank/loan/request/reject`
+##### `[POST] loan/simulate`
 
 **Recibe:**
 
 ```js
 {
-  "id": int,         // ID del préstamo
-  "reason": "string" // Razón del rechazo
+  "amount": int,  // Monto solicitado
+  "month": int    // Cantidad de cuotas solicitadas 
 }
 ```
 
 **Descripción:**  
-Este endpoint cambia el estado de una solicitud de préstamo de "pending" a "rejected", si no ha sido previamente aprobada o rechazada. No se agrega un nuevo registro en la tabla de préstamos, solo se actualiza el estado.
+Simula un préstamo basado en los datos proporcionados. El interés puede variar dependiendo de la cantidad de cuotas seleccionadas.
 
 **Devuelve:**
 
 ```js
 {
-  "id": int,           // ID del préstamo
-  "status": "string",   // Estado actualizado (por ejemplo: "rejected")
-  "rejectionReason": "string" // Razón del rechazo
+  "monthlyPaid": int,     // Monto mensual a pagar.
+  "totalPaid": int,       // Monto total a pagar al finalizar el préstamo.
+  "interestRate": decimal // Tasa de interés anual aplicada al préstamo.
+}
+```
+
+---
+
+##### `[POST] loan/request`
+
+**Recibe:**
+
+```js
+{
+  "customerId": int,      // ID del cliente solicitante.
+  "loanType": "string",   // Tipo de préstamo: "personal", "vivienda", "automotriz".
+  "amountRequest": int,   // Monto solicitado.
+  "monthRequest": int     // Número de meses solicitados para el préstamo.
+}
+```
+
+**Descripción:**  
+Genera una solicitud de préstamo para un cliente específico. El estado inicial de la solicitud es "pending" (pendiente) y debe ser aprobada o rechazada por un usuario con rol de 'admin'.
+
+**Devuelve:**
+
+```js
+{
+  "message": "Solicitud lista, estado Pending"
+}
+```
+
+---
+
+##### `[GET] loan/{ id }`
+
+**Recibe:** `Id: int`
+
+**Descripción:**  
+Obtiene todos los detalles de un préstamo aprobado, identificado por el 'Id'. La información incluye el monto solicitado, las cuotas pagadas y pendientes, y el estado general del préstamo.
+
+**Devuelve:**
+
+```js
+{
+  "customer": {
+    "id": int,            // ID del cliente
+    "name": "string"      // Nombre del cliente
+  },
+  "approveDate": "01/01/2000",    // Fecha de aprobación del préstamo
+  "amountRequest": int,           // Monto solicitado
+  "totalPaid": decimal,           // Total pagado hasta la fecha
+  "earnedProfit": decimal,        // Ganancia generada por el préstamo
+  "months": int,                  // Número de meses del préstamo
+  "loanType": "string",           // Tipo de préstamo: "personal", "vivienda", "automotriz"
+  "interest": decimal,            // Tasa de interés aplicada
+  "duesPaid": int,                // Cuotas pagadas
+  "pendingInstallments": int,     // Cuotas pendientes
+  "nextExpirationDate": "01/02/2000" // Fecha de vencimiento de la próxima cuota
 }
 ```
 
