@@ -1,4 +1,5 @@
-﻿using Core.Request;
+﻿
+using Core.Request;
 using FluentValidation;
 
 namespace Infrastructure.Validation;

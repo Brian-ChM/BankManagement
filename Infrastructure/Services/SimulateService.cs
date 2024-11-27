@@ -32,8 +32,9 @@ public class SimulateService : ISimulateService
 
         decimal monthlyInterest = interest / 100 / 12;
 
-        decimal monthlyPayment = request.Amount * (monthlyInterest * (decimal)Math.Pow((double)(1 + monthlyInterest), request.Month))
-                                 / ((decimal)Math.Pow((double)(1 + monthlyInterest), request.Month) - 1);
+        decimal monthlyPayment = request.Amount * (monthlyInterest * 
+                                (decimal)Math.Pow((double)(1 + monthlyInterest), request.Month)) / 
+                                 ((decimal)Math.Pow((double)(1 + monthlyInterest), request.Month) - 1);
 
         decimal totalAmountPaid = (monthlyPayment * request.Month);
 

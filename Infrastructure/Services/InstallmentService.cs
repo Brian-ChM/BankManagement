@@ -89,8 +89,9 @@ public class InstallmentService : IInstallmentService
         var installments = new List<Installment>();
 
         decimal principal = loan.Amount;
-        decimal monthlyInterestRate = loan.InterestRate / 12 / 100;
         int months = loan.Months;
+
+        decimal monthlyInterestRate = loan.InterestRate / 12 / 100;
 
         decimal monthlyPayment = principal * monthlyInterestRate *
                                  (decimal)Math.Pow((double)(1 + monthlyInterestRate), months) /
